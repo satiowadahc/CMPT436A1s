@@ -1,21 +1,52 @@
 using System;
-using System.Collections.Generic;
+using System.Net;
+using System.Net.Sockets;
+using System.IO;
+
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace server1
 {
-    class Program
+    public class Server
     {
-        static void Main(string[] args)
-        {
-            // The code provided will print ‘Hello World’ to the console.
-            // Press Ctrl+F5 (or go to Debug > Start Without Debugging) to run your app.
-            Console.WriteLine("Hello World!");
-            Console.ReadKey();
 
-            // Go to http://aka.ms/dotnet-get-started-console to continue learning how to build a console app! 
+        public static void Main()
+        {
+
+
+            IPAddress ip = IPAddress.Parse("127.0.0.1");
+            TcpListener server = new TcpListener(ip, 3333);
+
+            Byte[] bytes = new Byte[256];
+            server.Start();
+
+            while (true)
+            {
+                TcpClient client = server.AcceptTcpClient();
+
+                NetworkStream stream = client.GetStream();
+                String data = null;
+                int i;
+                while ((i = stream.Read(bytes, 0, bytes.Length)) != 0)
+                {
+                    data = System.Text.Encoding.ASCII.GetString(bytes, 0, i);
+                    Console.WriteLine("Received: {0}", data);
+
+                    data = data.ToUpper();
+
+                    byte[] msg = System.Text.Encoding.ASCII.GetBytes(data);
+
+                    stream.Write(msg, 0, msg.Length);
+                    Console.WriteLine("Sent: {0}", data);
+                }
+
+                // Shutdown and end connection
+                client.Close();
+
+            }
         }
+
     }
 }
